@@ -61,7 +61,7 @@ int my_open(const char*pathname,int mode)
 		snprintf(argsockfd,sizeof(argsockfd),"%d",sockfd[1]);
 		snprintf(argmode,sizeof(argmode),"%d",mode);
 
-		execl("./openfile","openfile",argsockfd,pathname,argmode,(char*)NULL);
+		execl("./a","a",argsockfd,pathname,argmode,(char*)NULL);
 		printf("execl error\n");
 	}
 
