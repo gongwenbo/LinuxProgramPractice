@@ -1,0 +1,13 @@
+nohup: ignoring input
+PING a1574.b.akamai.net (184.50.87.144) 56(84) bytes of data.
+64 bytes from a184-50-87-144.deploy.static.akamaitechnologies.com (184.50.87.144): icmp_seq=1 ttl=128 time=36.4 ms
+64 bytes from a184-50-87-144.deploy.static.akamaitechnologies.com (184.50.87.144): icmp_seq=2 ttl=128 time=38.6 ms
+64 bytes from a184-50-87-144.deploy.static.akamaitechnologies.com (184.50.87.144): icmp_seq=3 ttl=128 time=39.8 ms
+64 bytes from a184-50-87-144.deploy.static.akamaitechnologies.com (184.50.87.144): icmp_seq=4 ttl=128 time=35.9 ms
+64 bytes from a184-50-87-144.deploy.static.akamaitechnologies.com (184.50.87.144): icmp_seq=5 ttl=128 time=37.6 ms
+64 bytes from a184-50-87-144.deploy.static.akamaitechnologies.com (184.50.87.144): icmp_seq=6 ttl=128 time=36.9 ms
+64 bytes from a184-50-87-144.deploy.static.akamaitechnologies.com (184.50.87.144): icmp_seq=7 ttl=128 time=36.5 ms
+
+--- a1574.b.akamai.net ping statistics ---
+7 packets transmitted, 7 received, 0% packet loss, time 6011ms
+rtt min/avg/max/mdev = 35.982/37.440/39.866/1.298 ms
