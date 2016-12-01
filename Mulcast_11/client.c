@@ -27,13 +27,14 @@ int main(void)
 	char message[256];
 	int s;
 	struct sockaddr_in local_addr;
-	struct hostent *host;
+	/*struct hostent *host;
 
 	host=gethostbyname(host_name);
 	if(host==0){
 		perror("gethostbyname");
 		exit(EXIT_FAILURE);
 	}
+    */
 	
  	memset(&local_addr,0,sizeof(local_addr));
 	local_addr.sin_family=AF_INET;
@@ -46,7 +47,7 @@ int main(void)
 	}
 
 	loop=1;     //调用bind之前，设置套接字选项启用多播IP支持
-	int err=setsockopt(s,SOL_SOCKET,SO_REUSERADDR,&loop,sizeof(loop));
+	int err=setsockopt(s,SOL_SOCKET,SO_REUSEADDR,&loop,sizeof(loop));
 	if(err<0){
 		perror("setsockopt:SO_REUSEADDR");
 		exit(EXIT_FAILURE);
@@ -81,8 +82,8 @@ int main(void)
 	while(iter++<8)
 	{
 		int n=-1;
-		sin_len=sizeof(local_addr)
-		n=recvfrom(s,message,256,0,(struct sockaddr *)&local_addr,sin_len);
+		sin_len=sizeof(local_addr);
+		n=recvfrom(s,message,256,0,(struct sockaddr*)&local_addr,&sin_len);
 		if(n==-1){
 			perror("recvfrom");
 		}
@@ -91,7 +92,7 @@ int main(void)
 		sleep(2);		
 	}
 
-	err=setsockopt(s,OPPROTO_IP,IP_DROP_MAMBERSHIP,&mreq,sizeof(mreq));
+	err=setsockopt(s,IPPROTO_IP,IP_DROP_MEMBERSHIP,&mreq,sizeof(mreq));
 	if(err<0){
 		perror("setsockopt:IP_DROP_MAMBERSHIP");
 	}

@@ -29,11 +29,11 @@ int main(void)
 	
 	memset(&mcast_addr,0,sizeof(mcast_addr));
 	mcast_addr.sin_family=AF_INET;
-	mcast_addr.sin_addr.s_addr=inet_addr(MCAST_ADDR);
+	mcast_addr.sin_addr.s_addr=inet_addr("224.0.0.1");
 	mcast_addr.sin_port=htons(MCAST_PORT);
 
 	while(1){
-		int n=sendto(s,buffer,sizeof(buffer),0,(struct sockaddr *)&mcast_addr,sizeof(mcast_addr));
+		int n=sendto(s,buffer,strlen(buffer)+1,0,(struct sockaddr *)&mcast_addr,sizeof(mcast_addr));
 	if(n<0){
 		perror("sendto");
 		exit(EXIT_FAILURE);
@@ -42,4 +42,5 @@ int main(void)
 		
 	}
 	exit(EXIT_SUCCESS);
+	//free();
 }
