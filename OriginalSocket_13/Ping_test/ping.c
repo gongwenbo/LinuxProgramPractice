@@ -19,10 +19,10 @@ typedef struct pingm_pakcet{
 	struct timeval tv_end;
 	short seq;
 	int flag;	
-}pingm_pakcet;
+}pingm_packet;
 
-static pingm_pakcet pingpacket[128];
-static pingm_pakcet *icmp_findpacket(int seq);
+static pingm_packet pingpacket[128];
+static pingm_packet *icmp_findpacket(int seq);
 static unsigned short icmp_cksum(unsigned char *data,int len);
 static struct timeval icmp_tvsub(struct timeval end,struct timeval begin);
 static void icmp_statistics(void);
@@ -49,7 +49,7 @@ static struct timeval tv_begin, tv_end, tv_interval;
 
 static void icmp_usage()
 {
-	prinf("ping aaa.bbb.ccc.ddd\n");
+	printf("ping aaa.bbb.ccc.ddd\n");
 
 }
 
@@ -73,11 +73,11 @@ int main(int argc,char* argv[])
 	}
 
 	memcpy(dest_str,argv[1],strlen(argv[1])+1);
-	memset(pingpacket,0,sizeof(pingm_pakcet)*128);
+	memset(pingpacket,0,sizeof(pingm_packet)*128);
 
 	//socket intial
 	rawsock=socket(AF_INET,SOCK_RAW,protocol->p_proto);
-	if(rawsock){
+	if(rawsock<0){
 		perror("rawsock");
 		return -1;
 	}
@@ -95,9 +95,9 @@ int main(int argc,char* argv[])
 			return -1;
 		}
 		
-		memcpy((char*)&dest.sin_addr,host->h_addr,host,->h_length);
+		memcpy((char*)&dest.sin_addr,host->h_addr,host->h_length);
 	}else{
-		memcpy((char*)&dest,sin_addr,&inaddr,sizeof(inaddr));
+		memcpy((char*)&dest.sin_addr,&inaddr,sizeof(inaddr));
 	}
 
 	inaddr=dest.sin_addr.s_addr;
@@ -153,7 +153,7 @@ static unsigned short icmp_cksum(unsigned char *data,int len)
 }
 
 /*设置ICMP报头*/
-static void icmp_pack(struct icmp *icmph,int seq,struct timeval *tv,int length);
+static void icmp_pack(struct icmp *icmph,int seq,struct timeval *tv,int length)
 {
 	unsigned char i=0;
 	icmph->icmp_type=ICMP_ECHO;
@@ -187,11 +187,11 @@ static int icmp_unpack(char *buf,int len)
 	/*ICMP类型为ICMP_ECHOREPLY并且为本进程的PID*/
 	if((icmp->icmp_type==ICMP_ECHOREPLY)&&(icmp->icmp_id==pid)){
 		struct timeval tv_internel,tv_recv,tv_send;
-		pingm_pakcet* packet=icmp_findpacket(icmp->icmp_seq);
+		pingm_packet* packet=icmp_findpacket(icmp->icmp_seq);
 		if(packet==NULL){
 			return -1;
 		}
-		packet->falg=0;
+		packet->flag=0;
 		tv_send=packet->tv_begin;
 		gettimeofday(&tv_recv,NULL);
 		tv_internel=icmp_tvsub(tv_recv,tv_send);
@@ -266,7 +266,7 @@ static void* icmp_send(void *argv)
 static void *icmp_recv(void *argv)
 {
 	struct timeval tv;
-	tv.tv_usec=200
+	tv.tv_usec=200;
 	tv.tv_sec=0;
 	fd_set readfd;
 	while(alive)
@@ -310,7 +310,7 @@ static void *icmp_recv(void *argv)
 static pingm_packet *icmp_findpacket(int seq)
 {
 	int i=0;
-	pingm_packet *found=NULL
+	pingm_packet *found=NULL;
 	if(seq==-1){
 		for(i=0;i<128;i++){
 			if(pingpacket[i].flag==0)
@@ -334,12 +334,12 @@ static pingm_packet *icmp_findpacket(int seq)
 static void icmp_statistics(void)
 {
 	long time=(tv_interval.tv_sec * 1000)+(tv_interval.tv_usec/1000);
-	printf("--- %s ping statistics ---\n",des_str);
+	printf("--- %s ping statistics ---\n",dest_str);
 	printf("%d packet transmitted,%d received,%d%% packet loss ,time %ldms",
 		  	packet_send,
 			packet_recv,
 			(packet_send-packet_recv)*100/packet_send,
-			tiem);
+			time);
 
 }
 
