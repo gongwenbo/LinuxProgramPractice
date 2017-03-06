@@ -188,33 +188,208 @@ int GenerateDirFile(struct worker_ctl *wctl)
 		res->status=status;
 	}
 
-
-
-
-
-
-
-
-
-
+EXITgenerateIndex:
+	return 0;
 
 }
 
+#define CGISTR "/cgi-bin";
+#define ARGNUM 16
+#define READIN 0
+#define WRITEOUT 1
+int cgiHandler(struct worker_ctl *wctl)
+{
+	struct conn_requset *req=&wctl->conn.con_req;
+	struct conn_response *res=&wctl->conn.con_res;
+	char *command=strstr(req->uri,CGISTR)+strlen(CGISTR);
+	char *arg[ARGNUM];
+	int num=0;
+	char *rpath=wctl->conn.con_req.rpath;
+	stat *fs=&wctl->conn.con_res.fsate;
+	
+	int retval=-1;
+	char *pos=commad;
+	for(;*pos!='?'&&*pos!='\0';pos++)
+		;
+	*pos='\0';
+	sprintf(rpath,"%s%s",conf_para.CGIRoot,command);
 
+	/*CGI的参数*/
+	post++;
+	for(;*post!='\0'&&num<ARGNUM;)
+	{
+		arg[num]=pos;
+		for(;*pos!='+'&&*pos!='\0';post++)
+			;
+		if(*pos=='+'){
+			*pos='\0';
+			post++;
+			num++;
+		}
+	}
 
+	arg[num]=NULL;
 
+	/*命令的属性*/
+	if(stat(rpath,fs)<0){
+		res->status=403;
+		retval=-1;
+		goto EXITcgiHandler;
 
+	}
 
+	else if((fs->st_mode&S_IFDIR)==S_IFDIR){
+		
+		/*是一个目录,列出目录下的文件*/
+		GenerateDirFile(wctl);
+		retval=0;
+		goto EXITcgiHandler;
+	}
+	
+	else if((fs->st_mode & S_IXUSR)!=S_IXUSR){
+		/*所指文件不能执行*/
+		res->status=403;
+		retval=-1;
+		goto EXITcgiHandler;
+	}
 
+	/*创建进程间通信的管道*/
+	int pipe_in[2];
+	int pipe_out[2];
 
+	if(pipe[pipe_in]<0){
+		res->status=500;
+		retval=-1;
+		goto EXITcgiHandler;
+	}
 
+	if(pipe[pipe_out]<0)
+	{
+		res->status=500;
+		retval=-1;
+		goto EXITcgiHandler;
+	}
 
+	/*进程分叉*/
+	int pid=0;
+	pid=fork();
+	if(pid<0){
+		res->status=500;
+		retval=-1;
+		goto EXITcgiHandler;
+	}
+	else if(pid >0){
+		close(pipe_out[WRITEOUT]);
+		close(pipe_in[READIN]);
 
+		{
 
+			memset(path,0,URI_MAX);
+			size_t n;
+			unsigned long r1,r2;
+			char *fmt="%a,%d %b %Y %H:%M:%S GMT";
+			/*需要确定的参数*/
 
+			size_t status=200;
+			char *msg="ok";
+			char date[64]="";
+			char lm[64]="";
+			char etag[64]="";
+			big_int_t cl;/*内容长度*/
+			char range[64]="";
+			struct mine_type *mine=NULL;
 
+			/*当前时间*/
+			time_t t=time(NULL);
+			(void) strftime(date,
+							sizeof(date),
+							fmt,
+							localtime(&t));
 
+			/*最后修改时间*/
+			(void)strftime(lm,
+							sizeof(lm),
+							fmt,
+							localtime(&res->fsate.st_mtime));
+			//ETAG
+			(void)snprintf(etag,
+						sizeof(etag),
+						"%lx.%lx",
+						(unsigned long) res->fsate.st_mtime,
+						(unsigned long) res->fsate.st_size);
+			/*发送的MIME类型*/
+			mine=Mine_Type(req->uri,strlen(req->uri),wctl);
+			
+			memset(res->res.ptr,0,sizeof(wctl->conn.dres));
+			snprintf(
+				res->res.ptr,
+				sizeof(wctl->conn.dres),
+				"HTTP/1.1 %d %s\r\n"
+				"Date:%s\r\n"
+				"Last-Modified:%s\r\n"
+				"Etag:\"%s\"\r\n"
+				"Content-Type: %s\r\n"
+				"Accept-Ranges:bytes\r\n"
+				"%s\r\n",
+				status,
+				msg,
+				date,
+				lm,
+				etag,
+				"html",
+				range
+					);
+			res->status=status;
+			send(wctl->conn.cs,res->res.ptr,strlen(res->res.ptr));
+					
+		}
 
+		int size=0;
+		int end=0;
+		while(size>0&&!end)
+		{
+			size=read(pipe_out[READIN],res->res.ptr,sizeof(wctl->conn.dres));
+			if(size>0){
+				send(wctl->conn.cs,res->res.ptr,strlen(res->res.ptr));
+			}
+			else{
+				end=1;
+			}
+		}
 
+		wait(&end);
+		close(pipe_out[READIN]);
+		close(pipe_in[WRITEOUT]);
+
+		retval=0;
+	}
+	else //child pthread
+	{
+		char cmdarg[2048];
+		char onearg[2048];
+		char *pos=NULL;
+		int i=0;
+
+		/*形成执行命令*/
+		memset(onearg,0,2048);
+		for(i=0;i<num;i++)
+			sprintf(cmdarg,"%s %s",onearg,arg[i]);
+		/*将写入的管道绑定到标注输出*/
+		close(pipe_out[READIN]);
+		dup2(pipe_out[WRITEOUT],1);/* 将写管道绑定到标注输出 */
+		close(pipe_out[WRITEOUT]);
+		
+		close(pipe_in[WRITEOUT]);
+		dup2(pipe_int[READIN]);
+		close(pipe_in[READIN]);
+
+		/*执行命令,命令的输出需要为标准输出*/
+		execlp(rpath,arg);
+			
+	}
+EXITcgiHandler;
+	return retval;
+
+}
 
 
