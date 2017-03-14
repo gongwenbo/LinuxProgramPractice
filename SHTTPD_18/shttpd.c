@@ -36,14 +36,14 @@ int do_listen()
 {
 	struct sockaddr_in server;
 	int ss=-1;
-	int err=-1
+	int err=-1;
 	int reuse=-1;
 	int ret=-1;
 	
 	//initial server
 	memset(&server,0,sizeof(server));
 	server.sin_family=AF_INET;
-	server.sin_addr.s_addr=htonl(INADDE_ANY);
+	server.sin_addr.s_addr=htonl(INADDR_ANY);
 	server.sin_port=htons(conf_para.ListenPort);
 	
 	signal(SIGINT,sig_int);
@@ -85,14 +85,14 @@ EXITshttpd_listen:
 	return ret;
 
 }
-
+/*
 int l_main()
 {
 	int ss=-1;
 	ss=do_listen();
 	return 0;
 }
-
+*/
 int main(int argc,char *argv[])
 {
 	signal(SIGINT,sig_int);

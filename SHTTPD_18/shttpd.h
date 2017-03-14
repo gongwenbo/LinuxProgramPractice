@@ -1,31 +1,33 @@
 #ifndef __SHTTPD_H__
-#define __SHTTPD_H＿
-#define <stdio.h> 
-#define <stdlib.h>
-#define <time.h>
-#define <sys/types.h>
-#define <sys/stat.h>
-#define <sys/socket.h>
-#define <sys/wait.h>
-#define <sys/time.h>
-#define <netinet/in.h>   //for socketaddr_in
-#define <netdb.h>	 //for hostent
-#define <pthread.h>
-#define <arpa/inet.h>
-#define <signal.h>
-#define <errno.h>
-#define <unistd.h>	//protos for read write close etc 
-#define <dirent.h>      //for MAXNEMLEN
-#define <limits.h>
-#define <getopt.h>
-#define <sys/types.h>
-#define <sys/stat.>
-#define <fcntl.h>
-#define <ctype.h>
-#define <stddef.h>
+#define __SHTTPD_H__ 
+
+#include <stdio.h> 
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/time.h>
+#include <netinet/in.h>   //for socketaddr_in
+#include <netdb.h>	 //for hostent
+#include <pthread.h>
+#include <arpa/inet.h>
+#include <signal.h>
+#include <errno.h>
+#include <unistd.h>	//protos for read write close etc 
+#include <dirent.h>      //for MAXNEMLEN
+#include <limits.h>
+#include <getopt.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <ctype.h>
+#include <stddef.h>
 
 //status of pthreads
-enmu{WORKER_INITED,WORKER_RUNNING,WORKER_DETACHING,WORKER_DETACHED,WORKER_IDEL};
+enum{WORKER_INITED,WORKER_RUNNING,WORKER_DETACHING,WORKER_DETACHED,WORKER_IDEL};
 
 struct conf_opts{
 	char CGIRoot[128];
@@ -33,7 +35,7 @@ struct conf_opts{
 	char DocumentRoot[128];
 	char ConfigFile[128];
 	int ListenPort;
-	int MaxClinet;
+	int MaxClient;
 	int TimeOut;
 	int InitClient;	
 };
@@ -86,7 +88,7 @@ union variant{
 	struct vec v_vec;
 };
 
-#define URT_MAX 16384
+#define URI_MAX 16384
 /*
 this guy holds parsed HTTP headers
 */
@@ -152,7 +154,7 @@ struct conn_response{
 
 /*连接结构指针*/
 struct worker_conn{
-	#define K 1024;
+#define K 1023
 	char dreq[16*K];
 	char dres[16*K];
 	

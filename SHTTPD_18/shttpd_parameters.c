@@ -18,8 +18,7 @@ static struct option longopts[]={
 extern struct conf_opts conf_para;
 static void display_usage(void)
 {
-	printf("sHTTPD	-l number	-m number	-o path	-c path	
-			-d filename	-t	seconds -o filename\n");
+	printf("sHTTPD	-l number	-m number	-o path	-c path	-d filename	-t	seconds -o filename\n");
 	printf("sHTTPD	--ListenPort number\n");
 	printf("		--MaxClinet number\n");
 	printf("		--DocumentRoot path\n");
@@ -36,7 +35,7 @@ static void display_para()
 	printf("		DocumentRoot:%s\n",conf_para.DocumentRoot);
 	printf("		DefaultFile:%s\n",conf_para.DefaultFile);
 	printf("		CGIRoot:%s\n",conf_para.CGIRoot);
-	printf("		TimeOut:%s\n",conf_para.TimeOut);
+	printf("		TimeOut:%d\n",conf_para.TimeOut);
 	printf("		ConfigFile:%s\n",conf_para.ConfigFile);
 }
 
@@ -145,20 +144,22 @@ static int Para_CmdParse(int argc,char *argv[])
         break ;
 
 		case '?': /*错误参数*/
-			printf(Invalid para\n);
+			printf("Invalid para\n");
 		case 'h':  /*帮助*/
 			display_usage();
 	 		break;
 	 }
+	 //return 0;		
 
 	}
+	return 0;
 }
 
 //解析配置文件参数
 void Para_FileParse(char *file)
 {
 #define LINELENGTH 256
-	char [LINELENGTH];
+	char line[LINELENGTH];
 	char *name =NULL,*value =NULL;
 	int fd=-1,n=0;
 	
@@ -182,7 +183,8 @@ void Para_FileParse(char *file)
 		}
 
 		name=pos;
-		while(!isspace(*pos) &&　*pos !='=')
+	
+		while(!isspace(*pos) && *pos != '=')
 		{
 			pos++;
 		}
@@ -196,7 +198,7 @@ void Para_FileParse(char *file)
 		value=pos;
 
 		/*到结束*/
-		while(!isspace(*pos) && *pos!='\r' &&　*pos != '\n')
+		while(!isspace(*pos) && *pos!='\r' && *pos != '\n')
 		{
 			pos++;
 		}
@@ -208,25 +210,25 @@ void Para_FileParse(char *file)
 		"ListenPort","MaxClient","TimeOut"*/
 		if(strncmp("CGIRoot",name,7)){
 			memcpy(conf_para.CGIRoot,value,strlen(value)+1);
-		}else if(strncmp("DefaultFile",name,11) {
+		}else if(strncmp("DefaultFile",name,11)){
 			memcpy(conf_para.DefaultFile,value,strlen(value)+1);
-		}else if(strncmp("DocumentRoot",name,12){
+		}else if(strncmp("DocumentRoot",name,12)){
 			memcpy(conf_para.DocumentRoot,value,strlen(value)+1);
-		}else if(strncmp("ListenPort",name,10){
+		}else if(strncmp("ListenPort",name,10)){
 			//memcpy(conf_para.ListenPort,value,strlen(value)+1);
 			ivalue=strtol(value,NULL,10);
 			conf_para.ListenPort=ivalue;
-		}else if(strncmp("MaxClient",name,9){
+		}else if(strncmp("MaxClient",name,9)){
 			ivalue = strtol(value,NULL,10);
 			conf_para.MaxClient= ivalue;
-		}else if(strncmp("TimeOut",name,7){
+		}else if(strncmp("TimeOut",name,7)){
 			ivalue = strtol(value,NULL,10);
 			conf_para.TimeOut = ivalue;
 		}
 		
 	}
 	close(fd);
-EXITPara_FileParse;
+EXITPara_FileParse:
 	return ;
 	
 }
